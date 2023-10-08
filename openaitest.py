@@ -4,6 +4,7 @@ from config import apikey
 
 openai.api_key = apikey
 
+#Generating Text Using OpenAI:
 response = openai.Completion.create(
   model="text-davinci-003",
   prompt="Write an email to my boss for resignation?",
@@ -14,8 +15,10 @@ response = openai.Completion.create(
   presence_penalty=0
 )
 
+#Print response of openAI
 print(response)
 '''
+Example
 {
   "choices": [
     {
