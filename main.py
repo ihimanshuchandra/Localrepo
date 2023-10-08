@@ -7,6 +7,30 @@ import os
 import random
 import smtplib
 
+websites = [
+    ["youtube", "https://www.youtube.com"],
+    ["wikipedia", "https://www.wikipedia.org"],
+    ["google", "https://www.google.com"],
+    ["stackoverflow", "https://stackoverflow.com"],
+    ["github", "https://github.com"],
+    ["amazon", "https://www.amazon.com"],
+    ["twitter", "https://twitter.com"],
+    ["facebook", "https://www.facebook.com"],
+    ["linkedin", "https://www.linkedin.com"],
+    ["instagram", "https://www.instagram.com"],
+    ["reddit", "https://www.reddit.com"],
+    ["ebay", "https://www.ebay.com"],
+    ["quora", "https://www.quora.com"],
+    ["bing", "https://www.bing.com"],
+    ["pinterest", "https://www.pinterest.com"],
+    ["netflix", "https://www.netflix.com"],
+    ["spotify", "https://www.spotify.com"],
+    ["apple", "https://www.apple.com"],
+    ["microsoft", "https://www.microsoft.com"],
+    ["yahoo", "https://www.yahoo.com"],
+    # Add more websites here as needed
+]
+
 # Microsoft API takes audio input from Windows
 engine = pyttsx3.init('sapi5')  
 voices = engine.getProperty('voices')
@@ -73,6 +97,13 @@ if __name__ == "__main__":
     # if 1:
         query = takeCommand().lower() #Converting user query into lower case
 
+        # Check if the query matches any of the website names
+        for website in websites:
+            if f"open {website[0]}" in query:
+                speak(f"Opening {website[0]}...")
+                webbrowser.open(website[1])
+                break  # Exit the loop after opening the website
+
         # Logic for executing tasks based on query
         if 'wikipedia' in query:  #if wikipedia found in the query then this block will be executed
             speak('Searching Wikipedia...')
@@ -85,11 +116,6 @@ if __name__ == "__main__":
         elif 'open youtube' in query:
             webbrowser.open("youtube.com")
 
-        elif 'open google' in query:
-            webbrowser.open("google.com")
-
-        elif 'open stackoverflow' in query:
-            webbrowser.open("stackoverflow.com")
 
         elif 'play music' in query:
              music_dir = r'C:\Users\AU008TX\Downloads\Meal'
@@ -104,8 +130,10 @@ if __name__ == "__main__":
 
 
         elif 'the time' in query:
-            strTime = datetime.datetime.now().strftime("%H:%M:%S")    
-            speak(f"Sir, the time is {strTime}")
+            hour = datetime.datetime.now().strftime("%H")
+            min = datetime.datetime.now().strftime("%M")
+            speak(f"Sir time is {hour} hours and {min} minutes")
+
 
         elif 'open code' in query:
             codePath = r'C:\Users\AU008TX\AppData\Local\Programs\Microsoft VS Code\Code.exe'
