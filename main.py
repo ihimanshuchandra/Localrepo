@@ -1,6 +1,7 @@
 #import libraries
 import pyttsx3
 import datetime
+import time
 import speech_recognition as sr
 import wikipedia
 import webbrowser
@@ -16,6 +17,8 @@ from config import password
 chatStr = ""  # Initialize chatStr
 openai_enabled = False  # Flag to control OpenAI interaction
 openai_response = ""  # Store the response from OpenAI
+# Define a chat history list to keep track of the conversation
+chat_history = []
 
 
 # 1) Microsoft API takes audio input from Windows
@@ -50,7 +53,7 @@ websites = [
 
 # 3) Check password function
 def check_password():
-    speak("Please say the password to continue.")
+    speak("Tell the password")
     entered_password = takeCommand().lower()
     
     # You can replace this with a more complex password
@@ -148,49 +151,45 @@ def change_song():
     
     play_music()  # Play a new random song
 
-# 9)
-def chat(query):
-    global chatStr
-    print(chatStr)
-    openai.api_key = apikey
-    chatStr += f"User: {query}\n Jarvis: "
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt= chatStr,
-        temperature=0.7,
-        max_tokens=256,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-    # todo: Wrap this inside of a  try catch block
-    speak(response["choices"][0]["text"])
-    chatStr += f"{response['choices'][0]['text']}\n"
-    return response["choices"][0]["text"]
-
 # 9) Function to interact with OpenAI for chat
 def ai(prompt):
-    openai.api_key = apikey
-    text = f"OpenAI response for Prompt: {prompt} \n *************************\n\n"
+    try:
+        openai.api_key = apikey
+        text = f"OpenAI response for Prompt: {prompt} \n *************************\n\n"
 
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=256,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-    # todo: Wrap this inside of a  try catch block
-    # print(response["choices"][0]["text"])
-    text += response["choices"][0]["text"]
-    if not os.path.exists("Openai"):
-        os.mkdir("Openai")
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=256,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
+        
+        response_text = response["choices"][0]["text"]
+        text += response_text
+        
+        # Create a folder named "openai" if it doesn't exist
+        if not os.path.exists("openai"):
+            os.mkdir("openai")
 
-    # with open(f"Openai/prompt- {random.randint(1, 2343434356)}", "w") as f:
-    with open(f"Openai/{''.join(prompt.split('intelligence')[1:]).strip() }.txt", "w") as f:
-        f.write(text)
+        # Generate a unique filename based on the response content
+        filename = f"openai/{''.join(prompt.split('intelligence')[1:]).strip()}.txt"
+        
+        # Save the response to a text file
+        with open(filename, "w") as f:
+            f.write(text)
+            
+        return response_text
+    except Exception as e:
+        # Handle any exceptions that may occur during the OpenAI request
+        print(f"Error communicating with OpenAI: {str(e)}")
+        return "An error occurred while communicating with OpenAI."
+
+# Example usage:
+#response = ai("Generate a creative story about space exploration.")
+#print(response)
 
 # 10) Function to exit Octopus and say goodbye
 def exit_octopus():
@@ -261,15 +260,38 @@ if __name__ == "__main__":
                     print(e)
                     speak("Sorry. I am not able to send this email")
 
-            elif "chat with ai".lower() in query.lower():
-                ai(prompt=query)
+            elif "chat with ai" in query.lower():
+                speak("Sure! What would you like to chat about?")
+                openai_enabled = True
+                chat_history = []  # Initialize an empty chat history
+                while openai_enabled:
+                    user_input = takeCommand().lower()
+                    if 'close ai' in user_input:
+                        openai_enabled = False
+                        speak("I'm closing the chat with AI.")
+                        break
 
-            elif "Jarvis stop".lower() in query.lower():
-                exit()
+                    # Check for the "reset" command
+                    if 'reset' in user_input:
+                        chat_history = []  # Reset the chat history
+                        speak("Chat history has been reset.")
 
-            elif "reset".lower() in query.lower():
-                chatStr = ""
+                    # Add the user's input to the chat history
+                    chat_history.append(f"You: {user_input}")
 
-            else:
-                print("Chatting...")
-                chat(query)
+                    # Create a prompt by joining the chat history
+                    prompt = "\n".join(chat_history)
+
+                    # Get response from OpenAI
+                    openai_response = ai(prompt)
+
+                    # Append OpenAI's response to the chat history
+                    chat_history.append(f"AI: {openai_response}")
+
+                    # Speak OpenAI's response
+                    speak(openai_response)
+
+                    # Save the chat history to a text file
+                    with open("chat_history.txt", "w") as chat_file:
+                        chat_file.write("\n".join(chat_history))
+
